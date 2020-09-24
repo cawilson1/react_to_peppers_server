@@ -38,4 +38,40 @@ app.post("/user", async (request, response) => {
   }
 });
 
+app.post("/login", async (request, response) => {
+  try {
+    if (!request.body.username || !request.body.password)
+      return response
+        .status(401)
+        .send({ message: "Missing username or password" });
+
+    const username = request.body.username;
+    const password = request.body.password;
+    const conn = await pool.getConnection();
+    const queryResponse = await conn.execute(
+      `SELECT * FROM peppers.user WHERE username = ?`,
+      [username]
+    );
+    const fetchedUser = queryResponse[0][0];
+    if (!fetchedUser)
+      response.status(401).send({ message: "User does not exist" });
+    else {
+      if (await bcrypt.compare(password, fetchedUser.password)) {
+        const username = fetchedUser.username;
+        response
+          .status(200)
+          .send({ message: "successfully authenticated", user: username });
+      } else {
+        response.status(401).send({ message: "incorrect password" });
+      }
+    }
+
+    console.log(fetchedUser);
+    conn.release();
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
 app.listen(PORT, () => console.log(`server is running on ${PORT}`));
