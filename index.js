@@ -80,4 +80,73 @@ app.post("/login", async (request, response) => {
   }
 });
 
+app.post("/pepper", authorizeUser, async (request, response) => {
+  try {
+    if (!request.body.name || !request.body.pic || !request.body.scoville)
+      return response.status(401).send({ message: "Missing required field" });
+
+    const name = request.body.name;
+    const pic = request.body.pic;
+    const scoville = request.body.scoville;
+    const flavor = request.body.flavor;
+    const color = request.body.color;
+    const species = request.body.species;
+    const growthtimemonths = request.body.growthtimemonths;
+    const size = request.body.size;
+
+    const decodedToken = request.decodedToken;
+    console.log(decodedToken);
+    const user = decodedToken.username;
+
+    const conn = await pool.getConnection();
+    const queryResponse = await conn.execute(
+      `INSERT INTO peppers.pepper (name, pic,user,scoville,flavor,color,species,growthtimemonths,size) VALUES (?,?,?,?,?,?,?,?,?)`,
+      [
+        name,
+        pic,
+        user,
+        scoville,
+        flavor,
+        color,
+        species,
+        growthtimemonths,
+        size
+      ]
+    );
+    conn.release();
+    response.status(201).send(queryResponse);
+    response.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
+app.post("/getpeppers", authorizeUser, async (request, response) => {
+  try {
+    const conn = await pool.getConnection();
+    const queryResponse = await conn.query(`SELECT * FROM peppers.pepper`);
+    conn.release();
+    const peppers = queryResponse[0];
+    response.status(200).send(peppers);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
+function authorizeUser(request, response, next) {
+  const token = request.body.jwt;
+  if (token == null) {
+    console.log(token, "token is null");
+    response.status(401).send();
+  }
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+    if (err) return response.status(403).send();
+    request.decodedToken = decodedToken;
+    console.log("decoded token", decodedToken);
+    next();
+  });
+}
+
 app.listen(PORT, () => console.log(`server is running on ${PORT}`));
