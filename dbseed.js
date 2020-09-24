@@ -1,3 +1,5 @@
+///THIS FILE IS NOT THE SERVER, RUN IT TO CREATE DB AND DB TABLES
+
 require("dotenv").config();
 const sql = require("mysql2/promise");
 
@@ -63,18 +65,18 @@ const pool = sql.createPool({
 
 //user
 //pepperid
-(async function createPepperfriendsTable() {
-  try {
-    const conn = await pool.getConnection();
+// (async function createPepperfriendsTable() {
+//   try {
+//     const conn = await pool.getConnection();
 
-    conn.query("CREATE DATABASE IF NOT EXISTS peppers");
-    conn.query("USE peppers");
-    const userDb = await conn.query(
-      "CREATE TABLE IF NOT EXISTS pepperfriends (pepperid INT NOT NULL, user VARCHAR(255) NOT NULL,  PRIMARY KEY(pepperid,user), FOREIGN KEY (user) REFERENCES user(username), FOREIGN KEY(pepperid) REFERENCES pepper(id))"
-    );
-    console.log(userDb);
-    conn.release();
-  } catch (error) {
-    console.log(error);
-  }
-})();
+//     conn.query("CREATE DATABASE IF NOT EXISTS peppers");
+//     conn.query("USE peppers");
+//     const userDb = await conn.query(
+//       "CREATE TABLE IF NOT EXISTS pepperfriends (pepperid INT NOT NULL, user VARCHAR(255) NOT NULL,  PRIMARY KEY(pepperid,user), FOREIGN KEY (user) REFERENCES user(username), FOREIGN KEY(pepperid) REFERENCES pepper(id))"
+//     );
+//     console.log(userDb);
+//     conn.release();
+//   } catch (error) {
+//     console.log(error);
+//   }
+// })();
