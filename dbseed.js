@@ -45,14 +45,32 @@ const pool = sql.createPool({
 // id: 1, //INT AUTO_INCREMENT NOT NULL UNIQUE PRIMARY KEY
 // user: "Casey" //VARCHAR 255 FOREIGN KEY
 
-(async function createPepperTable() {
+// (async function createPepperTable() {
+//   try {
+//     const conn = await pool.getConnection();
+
+//     conn.query("CREATE DATABASE IF NOT EXISTS peppers");
+//     conn.query("USE peppers");
+//     const userDb = await conn.query(
+//       "CREATE TABLE IF NOT EXISTS pepper (id INT AUTO_INCREMENT NOT NULL UNIQUE, name VARCHAR(255) NOT NULL, scoville INT NOT NULL, pic VARCHAR(2000) NOT NULL, flavor VARCHAR(2000), color VARCHAR(255), species VARCHAR(255), growthtimemonths TINYINT, size TINYINT, user VARCHAR(255),  PRIMARY KEY(id), FOREIGN KEY (user) REFERENCES user(username))"
+//     );
+//     console.log(userDb);
+//     conn.release();
+//   } catch (error) {
+//     console.log(error);
+//   }
+// })();
+
+//user
+//pepperid
+(async function createPepperfriendsTable() {
   try {
     const conn = await pool.getConnection();
 
     conn.query("CREATE DATABASE IF NOT EXISTS peppers");
     conn.query("USE peppers");
     const userDb = await conn.query(
-      "CREATE TABLE IF NOT EXISTS pepper (id INT AUTO_INCREMENT NOT NULL UNIQUE, name VARCHAR(255) NOT NULL, scoville INT NOT NULL, pic VARCHAR(2000) NOT NULL, flavor VARCHAR(2000), color VARCHAR(255), species VARCHAR(255), growthtimemonths TINYINT, size TINYINT, user VARCHAR(255),  PRIMARY KEY(id), FOREIGN KEY (user) REFERENCES user(username))"
+      "CREATE TABLE IF NOT EXISTS pepperfriends (pepperid INT NOT NULL, user VARCHAR(255) NOT NULL,  PRIMARY KEY(pepperid,user), FOREIGN KEY (user) REFERENCES user(username), FOREIGN KEY(pepperid) REFERENCES pepper(id))"
     );
     console.log(userDb);
     conn.release();
