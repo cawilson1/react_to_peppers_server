@@ -3,6 +3,7 @@ const sql = require("mysql2/promise");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const PORT = 4000;
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -58,9 +59,14 @@ app.post("/login", async (request, response) => {
     else {
       if (await bcrypt.compare(password, fetchedUser.password)) {
         const username = fetchedUser.username;
+
+        const jwtToken = jwt.sign(
+          { username: username },
+          process.env.JWT_SECRET
+        );
         response
           .status(200)
-          .send({ message: "successfully authenticated", user: username });
+          .send({ message: "successfully authenticated", jwt: jwtToken });
       } else {
         response.status(401).send({ message: "incorrect password" });
       }
