@@ -135,6 +135,83 @@ app.post("/getpeppers", authorizeUser, async (request, response) => {
   }
 });
 
+app.post("/getpeppersbyuser", authorizeUser, async (request, response) => {
+  try {
+    const conn = await pool.getConnection();
+    const username = request.decodedToken.username;
+    const queryResponse = await conn.query(
+      `SELECT * FROM peppers.pepper WHERE user=?`,
+      [username]
+    );
+    conn.release();
+    const peppers = queryResponse[0];
+    response.status(200).send(peppers);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
+app.post("/sharepepper", authorizeUser, async (request, response) => {
+  try {
+    if (!request.body.user || !request.body.pepperid)
+      return response.status(401).send({ message: "Missing required field" });
+
+    const user = request.body.user;
+    const pepperid = request.body.pepperid;
+
+    const decodedToken = request.decodedToken;
+    console.log(decodedToken);
+    //   const user = decodedToken.username;
+
+    const conn = await pool.getConnection();
+
+    const pepperChecker = await conn.execute(
+      `SELECT user FROM peppers.pepper WHERE id = ?`,
+      [pepperid]
+    );
+
+    console.log("pepperChecker", pepperChecker[0]);
+    if (!(pepperChecker[0][0].user === decodedToken.username)) {
+      return response.status(403).send({ message: "FAKE!" });
+    }
+
+    const queryResponse = await conn.execute(
+      `INSERT INTO peppers.pepperfriends (user, pepperid) VALUES (?,?)`,
+      [user, pepperid]
+    );
+    conn.release();
+    response.status(201).send(queryResponse);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
+app.post("/sharedpeppersbyuser", authorizeUser, async (request, response) => {
+  try {
+    const user = request.decodedToken.username;
+    const conn = await pool.getConnection();
+
+    const queryResponse = await conn.execute(
+      `SELECT * FROM
+        (SELECT id,name,scoville,pic,flavor,color,species,growthtimemonths,size,PF.user FROM peppers.pepperfriends AS PF JOIN peppers.pepper AS PP ON PP.id = PF.pepperid) 
+         AS temp
+        WHERE temp.user = ?
+      `,
+      [user]
+    );
+
+    const peppers = queryResponse[0];
+
+    conn.release();
+    response.status(201).send(peppers);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
 function authorizeUser(request, response, next) {
   const token = request.body.jwt;
   if (token == null) {
