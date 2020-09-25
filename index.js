@@ -214,7 +214,7 @@ app.post("/sharedpeppersbyuser", authorizeUser, async (request, response) => {
 
     const queryResponse = await conn.execute(
       `SELECT * FROM
-        (SELECT id,name,scoville,pic,flavor,color,species,growthtimemonths,size,PF.user AS nada, PP.user AS user FROM peppers.pepperfriends AS PF JOIN peppers.pepper AS PP ON PP.id = PF.pepperid) 
+        (SELECT id,name,scoville,pic,flavor,color,species,growthtimemonths,size,PF.user AS user, PP.user AS nada FROM peppers.pepperfriends AS PF JOIN peppers.pepper AS PP ON PP.id = PF.pepperid) 
          AS temp
         WHERE temp.user = ?
       `,
