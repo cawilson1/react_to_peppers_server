@@ -4,10 +4,12 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const PORT = 4000;
 const jwt = require("jsonwebtoken");
+const cors = require("cors");
 
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 const pool = sql.createPool({
   host: process.env.DB_HOST,
@@ -124,6 +126,7 @@ app.post("/pepper", authorizeUser, async (request, response) => {
 
 app.post("/getpeppers", authorizeUser, async (request, response) => {
   try {
+    console.log("POST ALL PEPPERS");
     const conn = await pool.getConnection();
     const queryResponse = await conn.query(`SELECT * FROM peppers.pepper`);
     conn.release();
@@ -135,7 +138,22 @@ app.post("/getpeppers", authorizeUser, async (request, response) => {
   }
 });
 
+app.get("/allusers", async (request, response) => {
+  console.log("POST GET PEPPERS BY USER");
+  try {
+    const conn = await pool.getConnection();
+    const queryResponse = await conn.query(`SELECT * FROM peppers.user`);
+    conn.release();
+    const peppers = queryResponse[0];
+    response.status(200).send(peppers);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send({ message: error });
+  }
+});
+
 app.post("/getpeppersbyuser", authorizeUser, async (request, response) => {
+  console.log("POST GET PEPPERS BY USER");
   try {
     const conn = await pool.getConnection();
     const username = request.decodedToken.username;
@@ -189,6 +207,7 @@ app.post("/sharepepper", authorizeUser, async (request, response) => {
 });
 
 app.post("/sharedpeppersbyuser", authorizeUser, async (request, response) => {
+  console.log("GET SHARED PEPPERS FOR ", request.decodedToken.username);
   try {
     const user = request.decodedToken.username;
     const conn = await pool.getConnection();
@@ -216,7 +235,7 @@ function authorizeUser(request, response, next) {
   const token = request.body.jwt;
   if (token == null) {
     console.log(token, "token is null");
-    response.status(401).send();
+    return response.status(401).send();
   }
   jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
     if (err) return response.status(403).send();
